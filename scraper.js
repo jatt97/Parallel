@@ -5,6 +5,16 @@ const xml2js = require("xml2js");
 const url = require("url");
 const fs = require("fs");
 
+const config = {
+  proxy: {
+    host: YOUR PROXY HERE,
+    port: YOUR PORT HERE,
+    auth: {MAY OR MAY NOT BE REQUIRED IF YOU ARE USING IP AUTHENTICATED PROXY,
+        username: proxy username,
+        password: proxy password,
+    }
+  },
+
 const xmlParser = new xml2js.Parser();
 
 const parseXml = string =>
@@ -19,18 +29,18 @@ const parseXml = string =>
   });
 
 async function scrapeAtomFeed(url) {
-  const res = await axios.get(url);
+  const res = await axios.get(url, config);
   return await parseXml(res.data);
 }
 
 async function loadOEmbedFeed(oEmbedFeedLink) {
-  const res = await axios.get(oEmbedFeedLink);
+  const res = await axios.get(oEmbedFeedLink, config);
   const products = parseOEmbedFeed(res.data, oEmbedFeedLink);
   return products;
 }
 
 async function loadAtomFeed(atomFeedLink) {
-  const data = await scrapeAtomFeed(atomFeedLink);
+  const data = await scrapeAtomFeed(atomFeedLink, config);
   const products = parseAtomFeed(data);
   return products;
 }
@@ -129,7 +139,7 @@ async function createCheckout(offer, feedLink) {
         ["address[zip]"]: "",
         ["note"]: "",
         ["goto_pp"]: "paypal_express"
-      }),
+      }, config),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -199,7 +209,7 @@ async function getOffers(product) {
   if (product.offers) {
     return product.offers;
   }
-  const res = await axios.get(`${product.productLink}.oembed`);
+  const res = await axios.get(`${product.productLink}.oembed`, config);
   const offers = res.data.offers;
   return offers;
 }
